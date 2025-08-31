@@ -22,13 +22,15 @@ CIRCLE_RADIUS = SQUARE_SIZE // 3
 CIRCLE_WIDTH = 15
 CROSS_WIDTH = 25
 
+# Dimensiones de la ventana de juego
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Tres en ralla")
+pygame.display.set_caption("Tres en ralla vs AI")
 screen.fill(BLACK)
 
+# Tamaño del tablero de juego
 board = np.zeros((BOARD_ROWS, BOARD_COLS))
 
-
+# Función para definir las lineas del tablero
 def draw_lines(color=WHITE):
     for i in range(1, BOARD_ROWS):
         pygame.draw.line(
@@ -38,7 +40,7 @@ def draw_lines(color=WHITE):
             screen, color, (SQUARE_SIZE * i, 0), (SQUARE_SIZE * i, HEIGHT), LINE_WIDTH
         )
 
-
+# Función para dibujar las distintas figuras de juego
 def draw_figures(color=WHITE):
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
@@ -64,7 +66,7 @@ def draw_figures(color=WHITE):
                     (
                         col * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
                         row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
-                    ),
+                    ), CROSS_WIDTH
                 )
                 pygame.draw.line(
                     screen,
@@ -76,26 +78,26 @@ def draw_figures(color=WHITE):
                     (
                         col * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
                         row * SQUARE_SIZE + SQUARE_SIZE // 4,
-                    ),
+                    ), CROSS_WIDTH
                 )
 
-
+# Función para elegir posición
 def mark_square(row, col, player):
     board[row][col] = player
 
-
+# Función para saber si hay algún hueco vacio
 def avaliable_square(row, col):
     return board[row][col] == 0
 
-
+# Función para determinar si el tablero esta lleno
 def is_board_full(check_board=board):
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
             if check_board[row][col] == 0:
-                return True
-    return False
+                return False
+    return True
 
-
+# Función para determinar si alguien ha ganado
 def check_win(player, check_board=board):
     for col in range(BOARD_COLS):
         if (
@@ -159,3 +161,82 @@ def minimax(minimax_board, depth, is_maximazing):
                     minimax_board[row][col] = 0
                     best_score = min(score, best_score)
         return best_score
+
+# Función para determinar el mejor movimiento para la IA
+def best_move():
+    best_score = -1000
+    move = (-1, -1)
+    for row in range(BOARD_ROWS):
+            for col in range(BOARD_COLS):
+                if board[row][col] == 0:
+                    board[row][col] = 2
+                    score = minimax(board, 0, False)
+                    board[row][col] = 0
+                    if score > best_score:
+                        best_score = score
+                        move = (row, col)
+    
+    if move != (-1, -1):
+        mark_square(move[0], move[1], 2)
+        return True
+    return False
+
+# Función para reiniciar la partida
+def restart_game():
+    screen.fill(BLACK)
+    draw_lines()
+    for row in range(BOARD_ROWS):
+            for col in range(BOARD_COLS):
+                board[row][col] = 0
+                
+
+draw_lines()
+
+player = 1
+game_over = False
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+            
+        if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
+            mouseX = event.pos[0] // SQUARE_SIZE
+            mouseY = event.pos[1] // SQUARE_SIZE
+            
+            if avaliable_square(mouseY, mouseX):
+                mark_square(mouseY, mouseX, player)
+                if check_win(player):
+                    game_over = True
+                player = player % 2 + 1
+                
+                if not game_over:
+                    if best_move():
+                        if check_win(2):
+                            game_over = True
+                        player = player % 2 + 1
+                
+                if not game_over:
+                    if is_board_full():
+                        game_over = True
+                        
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                restart_game()
+                game_over = False
+                player = 1
+                
+    if not game_over:
+        draw_figures()
+    else:
+        if check_win(1):
+            draw_figures(GREEN)
+            draw_lines(GREEN)
+        elif check_win(2):
+            draw_figures(RED)
+            draw_lines(RED)
+        else:
+            draw_figures(GRAY)
+            draw_lines(GRAY)
+    
+    pygame.display.update()
