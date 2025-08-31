@@ -1,6 +1,7 @@
 import sys
 import pygame
 import numpy as np
+import random
 
 pygame.init()
 
@@ -164,23 +165,31 @@ def minimax(minimax_board, depth, is_maximazing):
 
 # Función para determinar el mejor movimiento para la IA
 def best_move():
+    # 30% de las veces, la IA juega aleatorio
+    if random.random() < 0.3:
+        empty = [(row, col) for row in range(BOARD_ROWS) for col in range(BOARD_COLS) if board[row][col] == 0]
+        if empty:
+            move = random.choice(empty)
+            mark_square(move[0], move[1], 2)
+            return True
+        return False
+
+    # 70% de las veces, juega perfecto
     best_score = -1000
     move = (-1, -1)
     for row in range(BOARD_ROWS):
-            for col in range(BOARD_COLS):
-                if board[row][col] == 0:
-                    board[row][col] = 2
-                    score = minimax(board, 0, False)
-                    board[row][col] = 0
-                    if score > best_score:
-                        best_score = score
-                        move = (row, col)
-    
+        for col in range(BOARD_COLS):
+            if board[row][col] == 0:
+                board[row][col] = 2
+                score = minimax(board, 0, False)
+                board[row][col] = 0
+                if score > best_score:
+                    best_score = score
+                    move = (row, col)
     if move != (-1, -1):
         mark_square(move[0], move[1], 2)
         return True
     return False
-
 # Función para reiniciar la partida
 def restart_game():
     screen.fill(BLACK)
@@ -190,17 +199,19 @@ def restart_game():
                 board[row][col] = 0
                 
 
+# Preparación de la partida
 draw_lines()
 
 player = 1
 game_over = False
 
+# Bucle del juego
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
             
-        if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
+        if event.type == pygame.MOUSEBUTTONDOWN and not game_over and player == 1:
             mouseX = event.pos[0] // SQUARE_SIZE
             mouseY = event.pos[1] // SQUARE_SIZE
             
@@ -208,24 +219,27 @@ while True:
                 mark_square(mouseY, mouseX, player)
                 if check_win(player):
                     game_over = True
-                player = player % 2 + 1
-                
-                if not game_over:
-                    if best_move():
-                        if check_win(2):
-                            game_over = True
-                        player = player % 2 + 1
-                
-                if not game_over:
-                    if is_board_full():
-                        game_over = True
-                        
+                else:
+                    player = 2  # Cambia al turno de la IA
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 restart_game()
                 game_over = False
                 player = 1
-                
+
+    # Turno de la IA (jugador 2)
+    if not game_over and player == 2:
+        pygame.time.wait(100)  # Pequeña pausa para que se vea la jugada
+        if best_move():
+            if check_win(2):
+                game_over = True
+            else:
+                player = 1  # Vuelve el turno al jugador
+
+        if not game_over and is_board_full():
+            game_over = True
+
     if not game_over:
         draw_figures()
     else:
