@@ -39,7 +39,13 @@ board = np.zeros((BOARD_ROWS, BOARD_COLS))
 
 # Menú de selección de dificultad
 def select_dificulty():
-    font = pygame.font.SysFont(None, 32)
+    font = pygame.font.SysFont(None, 45)
+    colores_dificultad = {
+        "1 - Fácil": (0, 200, 0),        # Verde
+        "2 - Normal": (255, 215, 0),     # Amarillo
+        "3 - Difícil": (255, 140, 0),    # Naranja
+        "4 - Imposible": (220, 0, 0),    # Rojo
+    }
     screen.fill(BLACK)
     opciones = [
         "Selecciona dificultad:",
@@ -48,9 +54,16 @@ def select_dificulty():
         "3 - Difícil",
         "4 - Imposible",
     ]
+    # Centrado vertical
+    total_height = len(opciones) * 45
+    start_y = (HEIGHT - total_height) // 2
     for i, texto in enumerate(opciones):
-        img = font.render(texto, True, WHITE)
-        screen.blit(img, (40, 60 + i * 40))
+        color = WHITE if i == 0 else colores_dificultad.get(texto, WHITE)
+        img = font.render(texto, True, color)
+        img_rect = img.get_rect()
+        img_rect.x = 40
+        img_rect.y = start_y + i * 45
+        screen.blit(img, img_rect)
     pygame.display.update()
 
     dificultad = None
@@ -291,22 +304,28 @@ def mostrar_contadores():
     texto = f"Jugador: {victorias_jugador}  |  IA: {victorias_ia}  |  Empates: {empates}"
     img = font.render(texto, True, WHITE)
     pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, TOP_MARGIN))
-    screen.blit(img, (10, 10))
+    img_rect = img.get_rect(center=(WIDTH // 2, TOP_MARGIN // 2 + 5))
+    screen.blit(img, img_rect)
 
 
 # Función que muestra los controles y la dificultad actual
 def mostrar_atajos(dificultad):
     font = pygame.font.SysFont(None, 25)
-    # Mostrar dificultad actual arriba
+    colores_dificultad = {
+        "facil": (0, 200, 0),        # Verde
+        "normal": (255, 215, 0),     # Amarillo
+        "dificil": (255, 140, 0),    # Naranja
+        "imposible": (220, 0, 0),    # Rojo
+    }
+    color = colores_dificultad.get(dificultad, GRAY)
     texto_dificultad = f"Dificultad actual: {dificultad.capitalize()}"
-    img_dificultad = font.render(texto_dificultad, True, GRAY)
+    img_dificultad = font.render(texto_dificultad, True, color)
     pygame.draw.rect(screen, BLACK, (0, HEIGHT - BOTTOM_MARGIN, WIDTH, BOTTOM_MARGIN))
     screen.blit(img_dificultad, (10, HEIGHT - BOTTOM_MARGIN + 5))
     # Mostrar atajos debajo
-    texto_atajos = "R: Reiniciar    ESC: Volver atrás"
+    texto_atajos = "ESC: Volver atrás    R: Reiniciar"
     img_atajos = font.render(texto_atajos, True, GRAY)
     screen.blit(img_atajos, (10, HEIGHT - BOTTOM_MARGIN + 27))
-
 
 # Función para reiniciar la partida
 def restart_game():
