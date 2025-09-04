@@ -30,7 +30,7 @@ CROSS_WIDTH = 25
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 icono = pygame.image.load("assets/penguin.svg")
 pygame.display.set_icon(icono)
-pygame.display.set_caption("Tres en ralla vs IA")
+pygame.display.set_caption("Tres en ralla - Andy")
 screen.fill(BLACK)
 
 # Tamaño del tablero de juego
