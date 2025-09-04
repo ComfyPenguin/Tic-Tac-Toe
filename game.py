@@ -30,7 +30,7 @@ CROSS_WIDTH = 25
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 icono = pygame.image.load("assets/penguin.svg")
 pygame.display.set_icon(icono)
-pygame.display.set_caption("Tres en ralla - Andy")
+pygame.display.set_caption("Tic-Tac-Toe")
 screen.fill(BLACK)
 
 # Tamaño del tablero de juego
@@ -41,10 +41,10 @@ board = np.zeros((BOARD_ROWS, BOARD_COLS))
 def select_dificulty():
     font = pygame.font.SysFont(None, 45)
     colores_dificultad = {
-        "1 - Fácil": (0, 200, 0),        # Verde
-        "2 - Normal": (255, 215, 0),     # Amarillo
-        "3 - Difícil": (255, 140, 0),    # Naranja
-        "4 - Imposible": (220, 0, 0),    # Rojo
+        "1 - Fácil": (0, 200, 0),  # Verde
+        "2 - Normal": (255, 215, 0),  # Amarillo
+        "3 - Difícil": (255, 140, 0),  # Naranja
+        "4 - Imposible": (220, 0, 0),  # Rojo
     }
     screen.fill(BLACK)
     opciones = [
@@ -301,7 +301,9 @@ empates = 0
 # Función que muestra las victorias de cada jugador en la parte superiro de la pantalla
 def mostrar_contadores():
     font = pygame.font.SysFont(None, 28)
-    texto = f"Jugador: {victorias_jugador}  |  IA: {victorias_ia}  |  Empates: {empates}"
+    texto = (
+        f"Jugador: {victorias_jugador}  |  IA: {victorias_ia}  |  Empates: {empates}"
+    )
     img = font.render(texto, True, WHITE)
     pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, TOP_MARGIN))
     img_rect = img.get_rect(center=(WIDTH // 2, TOP_MARGIN // 2 + 5))
@@ -312,10 +314,10 @@ def mostrar_contadores():
 def mostrar_atajos(dificultad):
     font = pygame.font.SysFont(None, 25)
     colores_dificultad = {
-        "facil": (0, 200, 0),        # Verde
-        "normal": (255, 215, 0),     # Amarillo
-        "dificil": (255, 140, 0),    # Naranja
-        "imposible": (220, 0, 0),    # Rojo
+        "facil": (0, 200, 0),  # Verde
+        "normal": (255, 215, 0),  # Amarillo
+        "dificil": (255, 140, 0),  # Naranja
+        "imposible": (220, 0, 0),  # Rojo
     }
     color = colores_dificultad.get(dificultad, GRAY)
     texto_dificultad = f"Dificultad actual: {dificultad.capitalize()}"
@@ -326,6 +328,7 @@ def mostrar_atajos(dificultad):
     texto_atajos = "ESC: Volver atrás    R: Reiniciar"
     img_atajos = font.render(texto_atajos, True, GRAY)
     screen.blit(img_atajos, (10, HEIGHT - BOTTOM_MARGIN + 27))
+
 
 # Función para reiniciar la partida
 def restart_game():
@@ -357,7 +360,11 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN and not game_over and player == 1:
             mouseX = event.pos[0] // SQUARE_SIZE
             mouseY = (event.pos[1] - TOP_MARGIN) // SQUARE_SIZE
-            if 0 <= mouseY < BOARD_ROWS and 0 <= mouseX < BOARD_COLS and TOP_MARGIN <= event.pos[1] < TOP_MARGIN + GRID_SIZE:
+            if (
+                0 <= mouseY < BOARD_ROWS
+                and 0 <= mouseX < BOARD_COLS
+                and TOP_MARGIN <= event.pos[1] < TOP_MARGIN + GRID_SIZE
+            ):
                 if avaliable_square(mouseY, mouseX):
                     mark_square(mouseY, mouseX, player)
                     if check_win(player):
