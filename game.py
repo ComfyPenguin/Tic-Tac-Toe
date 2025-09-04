@@ -13,12 +13,15 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
 # Proporciones y tamaños
-WIDTH = 300
-HEIGHT = 300
+GRID_SIZE = 400  # Tamaño fijo de la cuadrícula
+TOP_MARGIN = 40
+BOTTOM_MARGIN = 50
+WIDTH = GRID_SIZE
+HEIGHT = GRID_SIZE + TOP_MARGIN + BOTTOM_MARGIN  # Ajusta la ventana para márgenes
 LINE_WIDTH = 5
 BOARD_ROWS = 3
 BOARD_COLS = 3
-SQUARE_SIZE = WIDTH // BOARD_COLS
+SQUARE_SIZE = GRID_SIZE // BOARD_COLS
 CIRCLE_RADIUS = SQUARE_SIZE // 3
 CIRCLE_WIDTH = 15
 CROSS_WIDTH = 25
@@ -27,11 +30,12 @@ CROSS_WIDTH = 25
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 icono = pygame.image.load("assets/penguin.svg")
 pygame.display.set_icon(icono)
-pygame.display.set_caption("Tres en ralla vs AI")
+pygame.display.set_caption("Tres en ralla vs IA")
 screen.fill(BLACK)
 
 # Tamaño del tablero de juego
 board = np.zeros((BOARD_ROWS, BOARD_COLS))
+
 
 # Menú de selección de dificultad
 def select_dificulty():
@@ -42,7 +46,7 @@ def select_dificulty():
         "1 - Fácil",
         "2 - Normal",
         "3 - Difícil",
-        "4 - Imposible"
+        "4 - Imposible",
     ]
     for i, texto in enumerate(opciones):
         img = font.render(texto, True, WHITE)
@@ -65,28 +69,37 @@ def select_dificulty():
                     dificultad = "imposible"
     return dificultad
 
+
 # Función para definir las lineas del tablero
 def draw_lines(color=WHITE):
     for i in range(1, BOARD_ROWS):
         pygame.draw.line(
-            screen, color, (0, SQUARE_SIZE * i), (WIDTH, SQUARE_SIZE * i), LINE_WIDTH
+            screen,
+            color,
+            (0, TOP_MARGIN + SQUARE_SIZE * i),
+            (WIDTH, TOP_MARGIN + SQUARE_SIZE * i),
+            LINE_WIDTH,
         )
         pygame.draw.line(
-            screen, color, (SQUARE_SIZE * i, 0), (SQUARE_SIZE * i, HEIGHT), LINE_WIDTH
+            screen,
+            color,
+            (SQUARE_SIZE * i, TOP_MARGIN),
+            (SQUARE_SIZE * i, TOP_MARGIN + GRID_SIZE),
+            LINE_WIDTH,
         )
+
 
 # Función para dibujar las distintas figuras de juego
 def draw_figures(color=WHITE):
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
+            center_x = int(col * SQUARE_SIZE + SQUARE_SIZE // 2)
+            center_y = int(TOP_MARGIN + row * SQUARE_SIZE + SQUARE_SIZE // 2)
             if board[row][col] == 1:
                 pygame.draw.circle(
                     screen,
                     color,
-                    (
-                        int(col * SQUARE_SIZE + SQUARE_SIZE // 2),
-                        int(row * SQUARE_SIZE + SQUARE_SIZE // 2),
-                    ),
+                    (center_x, center_y),
                     CIRCLE_RADIUS,
                     CIRCLE_WIDTH,
                 )
@@ -96,25 +109,28 @@ def draw_figures(color=WHITE):
                     color,
                     (
                         col * SQUARE_SIZE + SQUARE_SIZE // 4,
-                        row * SQUARE_SIZE + SQUARE_SIZE // 4,
+                        TOP_MARGIN + row * SQUARE_SIZE + SQUARE_SIZE // 4,
                     ),
                     (
                         col * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
-                        row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
-                    ), CROSS_WIDTH
+                        TOP_MARGIN + row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
+                    ),
+                    CROSS_WIDTH,
                 )
                 pygame.draw.line(
                     screen,
                     color,
                     (
                         col * SQUARE_SIZE + SQUARE_SIZE // 4,
-                        row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
+                        TOP_MARGIN + row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
                     ),
                     (
                         col * SQUARE_SIZE + 3 * SQUARE_SIZE // 4,
-                        row * SQUARE_SIZE + SQUARE_SIZE // 4,
-                    ), CROSS_WIDTH
+                        TOP_MARGIN + row * SQUARE_SIZE + SQUARE_SIZE // 4,
+                    ),
+                    CROSS_WIDTH,
                 )
+
 
 # Función para elegir posición
 def mark_square(row, col, player):
@@ -133,15 +149,6 @@ def is_board_full(check_board=board):
             if check_board[row][col] == 0:
                 return False
     return True
-
-
-# Función para reiniciar la partida
-def restart_game():
-    screen.fill(BLACK)
-    draw_lines()
-    for row in range(BOARD_ROWS):
-            for col in range(BOARD_COLS):
-                board[row][col] = 0
 
 
 # Función para determinar si alguien ha ganado
@@ -187,7 +194,7 @@ def minimax(minimax_board, depth, is_maximazing):
         return float("-inf")
     elif is_board_full(minimax_board):
         return 0
-    
+
     if is_maximazing:
         best_score = -1000
         for row in range(BOARD_ROWS):
@@ -209,12 +216,18 @@ def minimax(minimax_board, depth, is_maximazing):
                     best_score = min(score, best_score)
         return best_score
 
+
 # Función para determinar el mejor movimiento para la IA
 def best_move(dificultad):
     if dificultad == "facil":
         # 70% aleatorio, 30% perfecto
         if random.random() < 0.7:
-            empty = [(row, col) for row in range(BOARD_ROWS) for col in range(BOARD_COLS) if board[row][col] == 0]
+            empty = [
+                (row, col)
+                for row in range(BOARD_ROWS)
+                for col in range(BOARD_COLS)
+                if board[row][col] == 0
+            ]
             if empty:
                 move = random.choice(empty)
                 mark_square(move[0], move[1], 2)
@@ -223,7 +236,12 @@ def best_move(dificultad):
     elif dificultad == "normal":
         # 40% aleatorio, 60% perfecto
         if random.random() < 0.4:
-            empty = [(row, col) for row in range(BOARD_ROWS) for col in range(BOARD_COLS) if board[row][col] == 0]
+            empty = [
+                (row, col)
+                for row in range(BOARD_ROWS)
+                for col in range(BOARD_COLS)
+                if board[row][col] == 0
+            ]
             if empty:
                 move = random.choice(empty)
                 mark_square(move[0], move[1], 2)
@@ -232,13 +250,18 @@ def best_move(dificultad):
     elif dificultad == "dificil":
         # 10% aleatorio, 90% perfecto
         if random.random() < 0.1:
-            empty = [(row, col) for row in range(BOARD_ROWS) for col in range(BOARD_COLS) if board[row][col] == 0]
+            empty = [
+                (row, col)
+                for row in range(BOARD_ROWS)
+                for col in range(BOARD_COLS)
+                if board[row][col] == 0
+            ]
             if empty:
                 move = random.choice(empty)
                 mark_square(move[0], move[1], 2)
                 return True
             return False
-    # imposible: juega perfecto
+    # Imposible: juega perfecto
     best_score = -1000
     move = (-1, -1)
     for row in range(BOARD_ROWS):
@@ -254,12 +277,54 @@ def best_move(dificultad):
         mark_square(move[0], move[1], 2)
         return True
     return False
-                
+
+
+# Contadores de victorias
+victorias_jugador = 0
+victorias_ia = 0
+empates = 0
+
+
+# Función que muestra las victorias de cada jugador en la parte superiro de la pantalla
+def mostrar_contadores():
+    font = pygame.font.SysFont(None, 28)
+    texto = f"Jugador: {victorias_jugador}  |  IA: {victorias_ia}  |  Empates: {empates}"
+    img = font.render(texto, True, WHITE)
+    pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, TOP_MARGIN))
+    screen.blit(img, (10, 10))
+
+
+# Función que muestra los controles y la dificultad actual
+def mostrar_atajos(dificultad):
+    font = pygame.font.SysFont(None, 25)
+    # Mostrar dificultad actual arriba
+    texto_dificultad = f"Dificultad actual: {dificultad.capitalize()}"
+    img_dificultad = font.render(texto_dificultad, True, GRAY)
+    pygame.draw.rect(screen, BLACK, (0, HEIGHT - BOTTOM_MARGIN, WIDTH, BOTTOM_MARGIN))
+    screen.blit(img_dificultad, (10, HEIGHT - BOTTOM_MARGIN + 5))
+    # Mostrar atajos debajo
+    texto_atajos = "R: Reiniciar    ESC: Volver atrás"
+    img_atajos = font.render(texto_atajos, True, GRAY)
+    screen.blit(img_atajos, (10, HEIGHT - BOTTOM_MARGIN + 27))
+
+
+# Función para reiniciar la partida
+def restart_game():
+    screen.fill(BLACK)
+    draw_lines()
+    mostrar_contadores()
+    mostrar_atajos(dificultad)
+    for row in range(BOARD_ROWS):
+        for col in range(BOARD_COLS):
+            board[row][col] = 0
+
 
 # Preparación de la partida
 dificultad = select_dificulty()
 screen.fill(BLACK)
 draw_lines()
+mostrar_contadores()
+mostrar_atajos(dificultad)
 
 player = 1
 game_over = False
@@ -269,17 +334,18 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-            
+
         if event.type == pygame.MOUSEBUTTONDOWN and not game_over and player == 1:
             mouseX = event.pos[0] // SQUARE_SIZE
-            mouseY = event.pos[1] // SQUARE_SIZE
-            
-            if avaliable_square(mouseY, mouseX):
-                mark_square(mouseY, mouseX, player)
-                if check_win(player):
-                    game_over = True
-                else:
-                    player = 2  # Cambia al turno de la IA
+            mouseY = (event.pos[1] - TOP_MARGIN) // SQUARE_SIZE
+            if 0 <= mouseY < BOARD_ROWS and 0 <= mouseX < BOARD_COLS and TOP_MARGIN <= event.pos[1] < TOP_MARGIN + GRID_SIZE:
+                if avaliable_square(mouseY, mouseX):
+                    mark_square(mouseY, mouseX, player)
+                    if check_win(player):
+                        game_over = True
+                        victorias_jugador += 1
+                    else:
+                        player = 2
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
@@ -287,23 +353,23 @@ while True:
                 game_over = False
                 player = 1
 
-        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 dificultad = select_dificulty()
                 restart_game()
                 game_over = False
                 player = 1
-                
-    # Turno de la IA (jugador 2)
+
     if not game_over and player == 2:
-        pygame.time.wait(100)  # Pequeña pausa para que se vea la jugada
+        pygame.time.wait(100)
         if best_move(dificultad):
             if check_win(2):
                 game_over = True
+                victorias_ia += 1
             else:
-                player = 1  # Vuelve el turno al jugador
+                player = 1
 
         if not game_over and is_board_full():
+            empates += 1
             game_over = True
 
     if not game_over:
@@ -318,5 +384,7 @@ while True:
         else:
             draw_figures(GRAY)
             draw_lines(GRAY)
-    
+        mostrar_contadores()
+        mostrar_atajos(dificultad)
+
     pygame.display.update()
